@@ -1,0 +1,13 @@
+[package]
+name = "rustraceroute"
+version = "0.0.0"
+authors = ["Alex Kotov <kotovalexarian@gmail.com>"]
+edition = "2018"
+description = "rustraceroute - print the route packets trace to network host"
+homepage = "https://github.com/kotovalexarian/rustraceroute"
+repository = "https://github.com/kotovalexarian/rustraceroute"
+license = "MIT"
+keywords = ["network"]
+categories = ["command-line-utilities", "network-programming"]
+
+[dependencies]
