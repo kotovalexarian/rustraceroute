@@ -12,3 +12,4 @@ categories = ["command-line-utilities", "network-programming"]
 
 [dependencies]
 clap = "3.0.0-beta.2"
+libc = "0.2.81"
