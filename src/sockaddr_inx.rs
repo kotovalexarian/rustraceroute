@@ -8,12 +8,22 @@ pub enum SockaddrInx {
 impl SockaddrInx {
     pub fn from_ip_addr(ip_addr: IpAddr) -> Self {
         match ip_addr {
-            IpAddr::V4(_) => Self::V4(libc::sockaddr_in {
-                sin_family: libc::AF_INET as libc::sa_family_t,
-                sin_port: 0,
-                sin_addr: libc::in_addr { s_addr: 2130706432 },
-                sin_zero: [0; 8],
-            }),
+            IpAddr::V4(ipv4_addr) => {
+                let octets = ipv4_addr.octets();
+
+                let s_addr =
+                    ((octets[0] as u32) << 24) +
+                    ((octets[1] as u32) << 16) +
+                    ((octets[2] as u32) << 8)  +
+                    ((octets[3] as u32));
+
+                Self::V4(libc::sockaddr_in {
+                    sin_family: libc::AF_INET as libc::sa_family_t,
+                    sin_port: 0,
+                    sin_addr: libc::in_addr { s_addr },
+                    sin_zero: [0; 8],
+                })
+            }
             IpAddr::V6(_) => unimplemented!(),
         }
     }
