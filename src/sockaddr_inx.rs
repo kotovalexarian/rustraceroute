@@ -1,4 +1,4 @@
-use std::{convert::TryInto, fmt, net::IpAddr};
+use std::{convert::TryInto, fmt, net::{IpAddr, Ipv4Addr}};
 
 #[derive(Clone, Copy)]
 pub enum SockaddrInx {
@@ -47,6 +47,18 @@ impl SockaddrInx {
                 })
             }
             IpAddr::V6(_) => unimplemented!(),
+        }
+    }
+
+    pub fn to_ip_addr(&self) -> IpAddr {
+        match self {
+            Self::V4(sockaddr_in) => IpAddr::V4(Ipv4Addr::new(
+                (sockaddr_in.sin_addr.s_addr >> 24) as u8,
+                (sockaddr_in.sin_addr.s_addr >> 16) as u8,
+                (sockaddr_in.sin_addr.s_addr >> 8)  as u8,
+                (sockaddr_in.sin_addr.s_addr)       as u8,
+            )),
+            Self::V6(_sockaddr_in6) => unimplemented!(),
         }
     }
 

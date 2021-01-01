@@ -30,7 +30,7 @@ fn main() {
     let mut current_ttl = options.first_ttl;
 
     while !reached_host && current_ttl <= options.max_ttl {
-        println!("{}", current_ttl);
+        let mut current_address: Option<IpAddr> = None;
 
         for sequence in 0..options.nqueries {
             let packet = Packet::new(0, sequence);
@@ -124,6 +124,21 @@ fn main() {
                     }
                 }
             }
+
+            if let Some(reply) = reply {
+                if reply.type_ != 11 || reply.code != 0 {
+                    continue
+                }
+
+                current_address = Some(reply.source.to_ip_addr());
+            }
+        }
+
+        if let Some(ip_addr) = current_address {
+            println!("{} {}", current_ttl, ip_addr);
+        }
+        else {
+            println!("{} ***", current_ttl);
         }
 
         current_ttl += 1;
@@ -133,17 +148,22 @@ fn main() {
 #[derive(Debug)]
 struct Reply {
     source: SockaddrInx,
+    type_: u8,
+    code: u8,
     ident: u16,
     sequence: u16,
 }
 
 impl Reply {
     fn parse(body: &[u8], source: &SockaddrInx) -> Option<Self> {
-        if body.len() < 2 * (8 + 20 /* IP header */) { return None }
-        if body[20] /* type */ != 11 || body[21] /* code */ != 0 { return None }
+        if body.len() < 2 * (20 /* IP header */ + 8 /* ICMP header */) {
+            return None
+        }
 
         Some(Reply {
             source: *source,
+            type_: body[20],
+            code:  body[21],
             ident:    ((body[52] as u16) << 8) + (body[53] as u16),
             sequence: ((body[54] as u16) << 8) + (body[55] as u16),
         })
