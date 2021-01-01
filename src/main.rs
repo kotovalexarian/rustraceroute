@@ -27,21 +27,15 @@ fn main() {
     let sockaddr = libc::sockaddr_in {
         sin_family: libc::AF_INET as libc::sa_family_t,
         sin_port: 0,
-        sin_addr: libc::in_addr {
-            s_addr: 0,
-        },
+        sin_addr: libc::in_addr { s_addr: 0 },
         sin_zero: [0; 8],
     };
 
-    let bind_result = unsafe {
-        libc::bind(
-            socket,
-            &sockaddr as *const libc::sockaddr_in as *const libc::sockaddr,
-            std::mem::size_of::<libc::sockaddr_in>() as libc::socklen_t
-        )
-    };
-
-    assert!(bind_result == 0);
+    assert_eq!(0, unsafe { libc::bind(
+        socket,
+        &sockaddr as *const libc::sockaddr_in as *const libc::sockaddr,
+        std::mem::size_of::<libc::sockaddr_in>() as libc::socklen_t
+    ) });
 
     let mut reached_host = false;
     let mut current_ttl = options.first_ttl;
