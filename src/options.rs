@@ -6,7 +6,7 @@ const CRATE_NAME: &str = env!("CARGO_PKG_NAME");
 #[clap(about, author, name = CRATE_NAME, version)]
 pub struct Options {
     #[clap(about = "The name or IP address of the destination host")]
-    host: String,
+    pub host: String,
 
     #[clap(
         short = 'f',
@@ -14,7 +14,7 @@ pub struct Options {
         default_value = "1",
         about = "With what TTL to start",
     )]
-    first_ttl: u8,
+    pub first_ttl: u8,
 
     #[clap(
         short = 'm',
@@ -22,7 +22,7 @@ pub struct Options {
         default_value = "30",
         about = "The maximum number of hops to probe",
     )]
-    max_ttl: u8,
+    pub max_ttl: u8,
 
     #[clap(
         short = 'q',
@@ -30,5 +30,5 @@ pub struct Options {
         default_value = "3",
         about = "The number of probe packets per hop",
     )]
-    nqueries: u32,
+    pub nqueries: u16,
 }

@@ -5,6 +5,7 @@ mod packet;
 use clap::{Clap};
 use libc;
 use options::{Options};
+use packet::{Packet};
 
 fn main() {
     let options = Options::parse();
@@ -33,4 +34,19 @@ fn main() {
     };
 
     assert!(bind_result == 0);
+
+    let mut reached_host = false;
+    let mut current_ttl = options.first_ttl;
+
+    while !reached_host && current_ttl <= options.max_ttl {
+        for sequence in 0..options.nqueries {
+            let packet = Packet {
+                ident: 0,
+                sequence,
+                payload: vec![],
+            };
+        }
+
+        current_ttl += 1;
+    }
 }

@@ -1,9 +1,9 @@
 use crate::checksum::{checksum};
 
-struct Packet {
-    ident: u16,
-    sequence: u16,
-    payload: Vec<u8>,
+pub struct Packet {
+    pub ident: u16,
+    pub sequence: u16,
+    pub payload: Vec<u8>,
 }
 
 impl Into<Vec<u8>> for Packet {
