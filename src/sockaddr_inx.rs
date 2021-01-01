@@ -1,4 +1,4 @@
-use std::net::IpAddr;
+use std::{convert::TryInto, net::IpAddr};
 
 pub enum SockaddrInx {
     V4(libc::sockaddr_in),
@@ -31,6 +31,6 @@ impl SockaddrInx {
         (match self {
             Self::V4(_) => std::mem::size_of::<libc::sockaddr_in>(),
             Self::V6(_) => std::mem::size_of::<libc::sockaddr_in6>(),
-        }) as libc::socklen_t
+        }).try_into().unwrap()
     }
 }
