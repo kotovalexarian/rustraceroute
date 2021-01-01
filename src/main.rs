@@ -1,3 +1,4 @@
+mod checksum;
 mod options;
 
 use clap::{Clap};
