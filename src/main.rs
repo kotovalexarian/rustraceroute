@@ -1,11 +1,13 @@
 mod checksum;
 mod options;
 mod packet;
+mod sockaddr_inx;
 
 use clap::{Clap};
 use libc;
 use options::{Options};
 use packet::{Packet};
+use sockaddr_inx::{SockaddrInx};
 use std::{convert::TryInto, net::IpAddr};
 
 fn main() {
@@ -51,20 +53,15 @@ fn main() {
 
             let message: Vec<u8> = packet.into();
 
-            let sockaddr = libc::sockaddr_in {
-                sin_family: libc::AF_INET as libc::sa_family_t,
-                sin_port: 0,
-                sin_addr: libc::in_addr { s_addr: 2130706432 },
-                sin_zero: [0; 8],
-            };
+            let sockaddr_inx = SockaddrInx::from_ip_addr(host);
 
             assert_ne!(-1, unsafe { libc::sendto(
                 socket,
                 message.as_ptr() as *const libc::c_void,
                 message.len(),
                 0,
-                &sockaddr as *const libc::sockaddr_in as *const libc::sockaddr,
-                std::mem::size_of::<libc::sockaddr_in>() as libc::socklen_t
+                sockaddr_inx.sockaddr_ptr(),
+                sockaddr_inx.socklen(),
             ) });
         }
 
