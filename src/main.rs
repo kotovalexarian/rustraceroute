@@ -6,6 +6,7 @@ use clap::{Clap};
 use libc;
 use options::{Options};
 use packet::{Packet};
+use std::convert::TryInto;
 
 fn main() {
     let options = Options::parse();
@@ -40,11 +41,25 @@ fn main() {
 
     while !reached_host && current_ttl <= options.max_ttl {
         for sequence in 0..options.nqueries {
-            let packet = Packet {
-                ident: 0,
-                sequence,
-                payload: vec![],
-            };
+            let packet = Packet::new(0, sequence);
+
+            assert_eq!(0, unsafe { libc::setsockopt(
+                socket,
+                libc::IPPROTO_IP,
+                libc::IP_TTL,
+                &current_ttl as *const u8 as *const libc::c_void,
+                std::mem::size_of::<u8>().try_into().unwrap(),
+            ) });
+
+            let traffic_class: u32 = 0;
+
+            assert_eq!(0, unsafe { libc::setsockopt(
+                socket,
+                libc::IPPROTO_IP,
+                libc::IP_TOS,
+                &traffic_class as *const u32 as *const libc::c_void,
+                std::mem::size_of::<i32>().try_into().unwrap(),
+            ) });
         }
 
         current_ttl += 1;

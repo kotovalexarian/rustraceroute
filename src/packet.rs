@@ -1,9 +1,19 @@
 use crate::checksum::{checksum};
 
 pub struct Packet {
-    pub ident: u16,
-    pub sequence: u16,
-    pub payload: Vec<u8>,
+    ident: u16,
+    sequence: u16,
+    payload: Vec<u8>,
+}
+
+impl Packet {
+    pub fn new(ident: u16, sequence: u16) -> Self {
+        Self {
+            ident,
+            sequence,
+            payload: vec![],
+        }
+    }
 }
 
 impl Into<Vec<u8>> for Packet {
