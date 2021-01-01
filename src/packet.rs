@@ -1,8 +1,8 @@
 use crate::checksum::checksum;
 
 pub struct Packet {
-    ident: u16,
-    sequence: u16,
+    pub ident: u16,
+    pub sequence: u16,
     payload: Vec<u8>,
 }
 
@@ -14,10 +14,8 @@ impl Packet {
             payload: vec![],
         }
     }
-}
 
-impl Into<Vec<u8>> for Packet {
-    fn into(self) -> Vec<u8> {
+    pub fn to_vec(&self) -> Vec<u8> {
         let mut result: Vec<u8> = vec![];
 
         result.push(8); // type
@@ -36,6 +34,12 @@ impl Into<Vec<u8>> for Packet {
         result[3] = (checksum & 0x00FF) as u8;
 
         result
+    }
+}
+
+impl Into<Vec<u8>> for Packet {
+    fn into(self) -> Vec<u8> {
+        self.to_vec()
     }
 }
 

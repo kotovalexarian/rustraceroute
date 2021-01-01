@@ -1,8 +1,18 @@
-use std::{convert::TryInto, net::IpAddr};
+use std::{convert::TryInto, fmt, net::IpAddr};
 
+#[derive(Clone, Copy)]
 pub enum SockaddrInx {
     V4(libc::sockaddr_in),
     V6(libc::sockaddr_in6),
+}
+
+impl fmt::Debug for SockaddrInx {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::V4(_) => f.debug_struct("SockaddrInx::V4").finish(),
+            Self::V6(_) => f.debug_struct("SockaddrInx::V6").finish(),
+        }
+    }
 }
 
 impl SockaddrInx {
