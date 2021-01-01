@@ -6,12 +6,19 @@ use clap::{Clap};
 use libc;
 use options::{Options};
 use packet::{Packet};
-use std::convert::TryInto;
+use std::{convert::TryInto, net::IpAddr};
 
 fn main() {
     let options = Options::parse();
 
     println!("{:?}", options);
+
+    let host = match options.host.parse::<IpAddr>() {
+        Ok(ip_addr) => ip_addr,
+        Err(_) => unimplemented!(),
+    };
+
+    println!("{:?}", host);
 
     let socket = unsafe {
         libc::socket(libc::AF_INET, libc::SOCK_RAW, libc::IPPROTO_ICMP)
