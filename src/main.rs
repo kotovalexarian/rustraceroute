@@ -3,11 +3,11 @@ mod options;
 mod packet;
 mod sockaddr_inx;
 
-use clap::{Clap};
+use clap::Clap;
 use libc;
-use options::{Options};
-use packet::{Packet};
-use sockaddr_inx::{SockaddrInx};
+use options::Options;
+use packet::Packet;
+use sockaddr_inx::SockaddrInx;
 use std::{convert::TryInto, net::IpAddr};
 
 fn main() {

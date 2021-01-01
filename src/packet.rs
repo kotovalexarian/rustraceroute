@@ -1,4 +1,4 @@
-use crate::checksum::{checksum};
+use crate::checksum::checksum;
 
 pub struct Packet {
     ident: u16,

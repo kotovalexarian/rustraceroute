@@ -1,4 +1,4 @@
-use clap::{Clap};
+use clap::Clap;
 
 const CRATE_NAME: &str = env!("CARGO_PKG_NAME");
 
