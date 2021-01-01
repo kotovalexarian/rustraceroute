@@ -61,6 +61,24 @@ fn main() {
                 &traffic_class as *const u32 as *const libc::c_void,
                 std::mem::size_of::<i32>().try_into().unwrap(),
             ) });
+
+            let message: Vec<u8> = packet.into();
+
+            let sockaddr = libc::sockaddr_in {
+                sin_family: libc::AF_INET as libc::sa_family_t,
+                sin_port: 0,
+                sin_addr: libc::in_addr { s_addr: 2130706432 },
+                sin_zero: [0; 8],
+            };
+
+            assert_ne!(-1, unsafe { libc::sendto(
+                socket,
+                message.as_ptr() as *const libc::c_void,
+                message.len(),
+                0,
+                &sockaddr as *const libc::sockaddr_in as *const libc::sockaddr,
+                std::mem::size_of::<libc::sockaddr_in>() as libc::socklen_t
+            ) });
         }
 
         current_ttl += 1;
