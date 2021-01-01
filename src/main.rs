@@ -30,6 +30,8 @@ fn main() {
     let mut current_ttl = options.first_ttl;
 
     while !reached_host && current_ttl <= options.max_ttl {
+        println!("{}", current_ttl);
+
         for sequence in 0..options.nqueries {
             let packet = Packet::new(0, sequence);
 
@@ -63,6 +65,27 @@ fn main() {
                 sockaddr_inx.sockaddr_ptr(),
                 sockaddr_inx.socklen(),
             ) });
+
+            let timeval = libc::timeval { tv_sec: 2, tv_usec: 0 };
+
+            assert_eq!(0, unsafe { libc::setsockopt(
+                socket,
+                libc::SOL_SOCKET,
+                libc::SO_RCVTIMEO,
+                &timeval as *const libc::timeval as *const libc::c_void,
+                std::mem::size_of::<libc::timeval>().try_into().unwrap(),
+            ) });
+
+            let mut response: [u8; 1024] = [0; 1024];
+
+            let response_size: isize = unsafe { libc::recvfrom(
+                socket,
+                response.as_ptr() as *mut libc::c_void,
+                std::mem::size_of::<[u8; 1024]>(),
+                0,
+                0 as *mut libc::sockaddr,
+                0 as *mut u32,
+            ) };
         }
 
         current_ttl += 1;
