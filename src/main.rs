@@ -33,6 +33,8 @@ fn main() {
         println!("{}", current_ttl);
 
         for sequence in 0..options.nqueries {
+            println!("  {}", sequence);
+
             let packet = Packet::new(0, sequence);
 
             assert_eq!(0, unsafe { libc::setsockopt(
@@ -76,16 +78,28 @@ fn main() {
                 std::mem::size_of::<libc::timeval>().try_into().unwrap(),
             ) });
 
-            let mut response: [u8; 1024] = [0; 1024];
+            let response_data: [u8; 1024] = [0; 1024];
 
-            let response_size: isize = unsafe { libc::recvfrom(
+            let mut response_sockaddr_data = libc::sockaddr {
+                sa_family: 0,
+                sa_data: [0i8; 14],
+            };
+
+            let mut response_sockaddr_size: u32 =
+                std::mem::size_of::<libc::sockaddr>().try_into().unwrap();
+
+            let response_data_size: isize = unsafe { libc::recvfrom(
                 socket,
-                response.as_ptr() as *mut libc::c_void,
+                response_data.as_ptr() as *mut libc::c_void,
                 std::mem::size_of::<[u8; 1024]>(),
                 0,
-                0 as *mut libc::sockaddr,
-                0 as *mut u32,
+                &mut response_sockaddr_data,
+                &mut response_sockaddr_size,
             ) };
+
+            let response_sockaddr_inx = SockaddrInx::from_sockaddr(
+                response_sockaddr_data,
+            );
         }
 
         current_ttl += 1;

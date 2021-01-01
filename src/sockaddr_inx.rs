@@ -6,6 +6,18 @@ pub enum SockaddrInx {
 }
 
 impl SockaddrInx {
+    pub fn from_sockaddr(sockaddr: libc::sockaddr) -> Option<Self> {
+        match sockaddr.sa_family as i32 {
+            libc::AF_INET => Some(Self::V4(unsafe { *(
+                &sockaddr as *const libc::sockaddr as *const libc::sockaddr_in
+            ) })),
+            libc::AF_INET6 => Some(Self::V6(unsafe { *(
+                &sockaddr as *const libc::sockaddr as *const libc::sockaddr_in6
+            ) })),
+            _ => None,
+        }
+    }
+
     pub fn from_ip_addr(ip_addr: IpAddr) -> Self {
         match ip_addr {
             IpAddr::V4(ipv4_addr) => {
