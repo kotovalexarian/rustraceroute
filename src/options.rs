@@ -1,9 +1,7 @@
 use clap::Clap;
 
-const CRATE_NAME: &str = env!("CARGO_PKG_NAME");
-
 #[derive(Debug, Clap)]
-#[clap(about, author, name = CRATE_NAME, version)]
+#[clap(about, author, version)]
 pub struct Options {
     #[clap(about = "The name or IP address of the destination host")]
     pub host: String,
