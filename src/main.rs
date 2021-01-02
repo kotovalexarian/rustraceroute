@@ -1,12 +1,14 @@
 mod checksum;
 mod options;
 mod packet;
+mod reply;
 mod sockaddr_inx;
 
 use clap::Clap;
 use libc;
 use options::Options;
 use packet::Packet;
+use reply::{Reply};
 use sockaddr_inx::SockaddrInx;
 use std::{convert::TryInto, net::IpAddr, time::{Duration, SystemTime}};
 
@@ -142,30 +144,5 @@ fn main() {
         }
 
         current_ttl += 1;
-    }
-}
-
-#[derive(Debug)]
-struct Reply {
-    source: SockaddrInx,
-    type_: u8,
-    code: u8,
-    ident: u16,
-    sequence: u16,
-}
-
-impl Reply {
-    fn parse(body: &[u8], source: &SockaddrInx) -> Option<Self> {
-        if body.len() < 2 * (20 /* IP header */ + 8 /* ICMP header */) {
-            return None
-        }
-
-        Some(Reply {
-            source: *source,
-            type_: body[20],
-            code:  body[21],
-            ident:    ((body[52] as u16) << 8) + (body[53] as u16),
-            sequence: ((body[54] as u16) << 8) + (body[55] as u16),
-        })
     }
 }
