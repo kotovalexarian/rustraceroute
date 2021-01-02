@@ -118,9 +118,7 @@ fn main() {
                 };
 
                 if let Some(tmp_response) = tmp_response {
-                    if tmp_response.ident == request.ident &&
-                        tmp_response.sequence == request.sequence
-                    {
+                    if tmp_response.matches_request(&request) {
                         response = Some(tmp_response);
                         break
                     }

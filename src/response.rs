@@ -1,4 +1,4 @@
-use crate::sockaddr_inx::SockaddrInx;
+use crate::{sockaddr_inx::SockaddrInx, request::Request};
 use std::net::IpAddr;
 
 #[derive(Debug)]
@@ -24,6 +24,10 @@ impl Response {
             sequence: ((body[54] as u16) << 8) + (body[55] as u16),
         })
     }
+
+    pub fn matches_request(&self, request: &Request) -> bool {
+        self.ident == request.ident && self.sequence == request.sequence
+    }
 }
 
 #[cfg(test)]
@@ -36,20 +40,27 @@ mod tests {
 
     fn source() -> SockaddrInx { SockaddrInx::from_ip_addr(IP_ADDR) }
 
+    const TYPE:     u8  = 123;
+    const CODE:     u8  = 231;
+    const IDENT:    u16 = 31_719;
+    const SEQUENCE: u16 = 59_259;
+
     const BODY: [u8; 56] = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        123,
-        231,
+        TYPE,
+        CODE,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        123, 231, // 31_719
-        231, 123, // 59_259
+        123, 231, // IDENT
+        231, 123, // SEQUENCE
     ];
+
+    fn response() -> Response { Response::parse(&source(), &BODY).unwrap() }
 
     #[test]
     fn debug() {
         assert_eq!(
-            format!("{:?}", Response::parse(&source(), &BODY).unwrap()),
+            format!("{:?}", response()),
             "Response { source: 127.0.0.1, type_: 123, code: 231, ident: \
                 31719, sequence: 59259 }",
         );
@@ -72,19 +83,31 @@ mod tests {
 
     #[test]
     fn parse() {
-        let response = Response::parse(&source(), &BODY).unwrap();
+        let response = response();
 
-        assert_eq!(response.type_,    123);
-        assert_eq!(response.code,     231);
-        assert_eq!(response.ident,    31_719);
-        assert_eq!(response.sequence, 59_259);
+        assert_eq!(response.type_,    TYPE);
+        assert_eq!(response.code,     CODE);
+        assert_eq!(response.ident,    IDENT);
+        assert_eq!(response.sequence, SEQUENCE);
 
         match response.source {
             IpAddr::V6(_) => panic!(),
-            IpAddr::V4(ipv4_addr) => assert_eq!(
-                ipv4_addr,
-                Ipv4Addr::new(127, 0, 0, 1),
-            ),
+            IpAddr::V4(ipv4_addr) => assert_eq!(ipv4_addr, IPV4_ADDR),
         }
+    }
+
+    #[test]
+    fn matches_request() {
+        assert!(response().matches_request(&Request::new(IDENT, SEQUENCE)));
+    }
+
+    #[test]
+    fn does_not_match_request_ident() {
+        assert!(!response().matches_request(&Request::new(IDENT + 1, SEQUENCE)));
+    }
+
+    #[test]
+    fn does_not_match_request_sequence() {
+        assert!(!response().matches_request(&Request::new(IDENT, SEQUENCE + 1)));
     }
 }
