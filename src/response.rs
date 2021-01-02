@@ -47,6 +47,15 @@ mod tests {
     ];
 
     #[test]
+    fn debug() {
+        assert_eq!(
+            format!("{:?}", Response::parse(&source(), &BODY).unwrap()),
+            "Response { source: 127.0.0.1, type_: 123, code: 231, ident: \
+                31719, sequence: 59259 }",
+        );
+    }
+
+    #[test]
     fn parse_empty() {
         assert!(Response::parse(&source(), &[]).is_none());
     }
