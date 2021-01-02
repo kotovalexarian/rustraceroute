@@ -1,14 +1,14 @@
 mod checksum;
 mod options;
-mod reply;
 mod request;
+mod response;
 mod sockaddr_inx;
 
 use clap::Clap;
 use libc;
 use options::Options;
-use reply::{Reply};
 use request::Request;
+use response::Response;
 use sockaddr_inx::SockaddrInx;
 use std::{convert::TryInto, net::IpAddr, time::{Duration, SystemTime}};
 
@@ -78,7 +78,7 @@ fn main() {
                 std::mem::size_of::<libc::timeval>().try_into().unwrap(),
             ) });
 
-            let mut reply: Option<Reply> = None;
+            let mut response: Option<Response> = None;
 
             let time_limit = SystemTime::now() + Duration::new(2, 0);
 
@@ -106,10 +106,10 @@ fn main() {
                     response_sockaddr_data,
                 );
 
-                let tmp_reply = if response_body_size < 0 { None } else {
+                let tmp_response = if response_body_size < 0 { None } else {
                     match &response_sockaddr_inx {
                         None => None,
-                        Some(response_sockaddr_inx) => Reply::parse(
+                        Some(response_sockaddr_inx) => Response::parse(
                             &response_body_data
                                 [0..(response_body_size as usize)],
                             &response_sockaddr_inx,
@@ -117,22 +117,22 @@ fn main() {
                     }
                 };
 
-                if let Some(tmp_reply) = tmp_reply {
-                    if tmp_reply.ident == request.ident &&
-                        tmp_reply.sequence == request.sequence
+                if let Some(tmp_response) = tmp_response {
+                    if tmp_response.ident == request.ident &&
+                        tmp_response.sequence == request.sequence
                     {
-                        reply = Some(tmp_reply);
+                        response = Some(tmp_response);
                         break
                     }
                 }
             }
 
-            if let Some(reply) = reply {
-                if reply.type_ != 11 || reply.code != 0 {
+            if let Some(response) = response {
+                if response.type_ != 11 || response.code != 0 {
                     continue
                 }
 
-                current_address = Some(reply.source.to_ip_addr());
+                current_address = Some(response.source.to_ip_addr());
             }
         }
 

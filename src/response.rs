@@ -1,7 +1,7 @@
 use crate::sockaddr_inx::SockaddrInx;
 
 #[derive(Debug)]
-pub struct Reply {
+pub struct Response {
     pub source: SockaddrInx,
     pub type_: u8,
     pub code: u8,
@@ -9,13 +9,13 @@ pub struct Reply {
     pub sequence: u16,
 }
 
-impl Reply {
+impl Response {
     pub fn parse(body: &[u8], source: &SockaddrInx) -> Option<Self> {
         if body.len() < 2 * (20 /* IP header */ + 8 /* ICMP header */) {
             return None
         }
 
-        Some(Reply {
+        Some(Self {
             source: *source,
             type_: body[20],
             code:  body[21],
