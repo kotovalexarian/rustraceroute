@@ -35,33 +35,34 @@ mod tests {
 
     fn source() -> SockaddrInx { SockaddrInx::from_ip_addr(IP_ADDR) }
 
+    const BODY: [u8; 56] = [
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        123,
+        231,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        123, 231, // 31_719
+        231, 123, // 59_259
+    ];
+
     #[test]
     fn parse_empty() {
-        let body: [u8; 0] = [];
+        assert!(Response::parse(&[], &source()).is_none());
+    }
 
-        assert!(Response::parse(&body, &source()).is_none());
+    #[test]
+    fn parse_some() {
+        assert!(Response::parse(&BODY[0..22], &source()).is_none());
     }
 
     #[test]
     fn parse_almost_enough() {
-        let body: [u8; 55] = [0; 55];
-
-        assert!(Response::parse(&body, &source()).is_none());
+        assert!(Response::parse(&BODY[0..55], &source()).is_none());
     }
 
     #[test]
     fn parse() {
-        let body: [u8; 56] = [
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            123,
-            231,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            123, 231, // 31_719
-            231, 123, // 59_259
-        ];
-
-        let response = Response::parse(&body, &source()).unwrap();
+        let response = Response::parse(&BODY, &source()).unwrap();
 
         assert_eq!(response.type_,    123);
         assert_eq!(response.code,     231);
