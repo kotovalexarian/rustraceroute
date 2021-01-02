@@ -11,6 +11,8 @@ pub struct Response {
 }
 
 impl Response {
+    // TODO: parse IP header with length > 5 and additional options.
+    //
     pub fn parse(source: &SockaddrInx, body: &[u8]) -> Option<Self> {
         if body.len() < 2 * (20 /* IP header */ + 8 /* ICMP header */) {
             return None
