@@ -132,7 +132,7 @@ fn main() {
                     continue
                 }
 
-                current_address = Some(response.source.to_ip_addr());
+                current_address = Some(response.source);
             }
         }
 

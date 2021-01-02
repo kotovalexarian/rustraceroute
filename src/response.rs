@@ -1,8 +1,9 @@
 use crate::sockaddr_inx::SockaddrInx;
+use std::net::IpAddr;
 
 #[derive(Debug)]
 pub struct Response {
-    pub source: SockaddrInx,
+    pub source: IpAddr,
     pub type_: u8,
     pub code: u8,
     pub ident: u16,
@@ -16,7 +17,7 @@ impl Response {
         }
 
         Some(Self {
-            source: *source,
+            source: source.to_ip_addr(),
             type_: body[20],
             code:  body[21],
             ident:    ((body[52] as u16) << 8) + (body[53] as u16),
@@ -27,7 +28,7 @@ impl Response {
 
 #[cfg(test)]
 mod tests {
-    use std::net::{IpAddr, Ipv4Addr};
+    use std::net::Ipv4Addr;
     use super::*;
 
     const IPV4_ADDR: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 1);
@@ -70,14 +71,11 @@ mod tests {
         assert_eq!(response.sequence, 59_259);
 
         match response.source {
-            SockaddrInx::V6(_) => panic!(),
-            SockaddrInx::V4(sockaddr_in) => {
-                assert_eq!(sockaddr_in.sin_family,
-                           libc::AF_INET as libc::sa_family_t);
-                assert_eq!(sockaddr_in.sin_port, 0);
-                assert_eq!(sockaddr_in.sin_addr.s_addr, 2_130_706_433);
-                assert_eq!(sockaddr_in.sin_zero, [0, 0, 0, 0, 0, 0, 0, 0]);
-            },
+            IpAddr::V6(_) => panic!(),
+            IpAddr::V4(ipv4_addr) => assert_eq!(
+                ipv4_addr,
+                Ipv4Addr::new(127, 0, 0, 1),
+            ),
         }
     }
 }
