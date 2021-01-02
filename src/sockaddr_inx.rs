@@ -114,6 +114,11 @@ mod tests {
     const IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
 
     #[test]
+    fn sanity_std_net_ipv6_addr_endianness() {
+        assert_eq!(IPV6_ADDR.octets(), IPV6_BIG_ENDIAN);
+    }
+
+    #[test]
     fn from_to_ipv4_addr() {
         assert_eq!(
             SockaddrInx::from_ip_addr(IpAddr::V4(IPV4_ADDR)).to_ip_addr(),
@@ -152,7 +157,7 @@ mod tests {
                            libc::AF_INET6 as libc::sa_family_t);
                 assert_eq!(sockaddr_in6.sin6_port, 0);
                 assert_eq!(sockaddr_in6.sin6_flowinfo, 0);
-                assert_eq!(sockaddr_in6.sin6_addr.s6_addr, IPV6_ADDR.octets());
+                assert_eq!(sockaddr_in6.sin6_addr.s6_addr, IPV6_BIG_ENDIAN);
                 assert_eq!(sockaddr_in6.sin6_scope_id, 0);
             },
         }
