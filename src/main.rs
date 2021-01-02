@@ -37,36 +37,7 @@ fn main() {
         for sequence in 0..options.nqueries {
             let request = Request::new(0, sequence);
 
-            assert_eq!(0, unsafe { libc::setsockopt(
-                socket,
-                libc::IPPROTO_IP,
-                libc::IP_TTL,
-                &current_ttl as *const u8 as *const libc::c_void,
-                std::mem::size_of::<u8>().try_into().unwrap(),
-            ) });
-
-            let traffic_class: u32 = 0;
-
-            assert_eq!(0, unsafe { libc::setsockopt(
-                socket,
-                libc::IPPROTO_IP,
-                libc::IP_TOS,
-                &traffic_class as *const u32 as *const libc::c_void,
-                std::mem::size_of::<i32>().try_into().unwrap(),
-            ) });
-
-            let message = request.to_vec();
-
-            let sockaddr_inx = SockaddrInx::from_ip_addr(host);
-
-            assert_ne!(-1, unsafe { libc::sendto(
-                socket,
-                message.as_ptr() as *const libc::c_void,
-                message.len(),
-                0,
-                sockaddr_inx.sockaddr_ptr(),
-                sockaddr_inx.socklen(),
-            ) });
+            send_request(socket, current_ttl, &host, &request);
 
             let timeval = libc::timeval { tv_sec: 2, tv_usec: 0 };
 
@@ -143,4 +114,42 @@ fn main() {
 
         current_ttl += 1;
     }
+}
+
+fn send_request(
+    socket: libc::c_int,
+    current_ttl: u8,
+    host: &IpAddr,
+    request: &Request,
+) {
+    assert_eq!(0, unsafe { libc::setsockopt(
+        socket,
+        libc::IPPROTO_IP,
+        libc::IP_TTL,
+        &current_ttl as *const u8 as *const libc::c_void,
+        std::mem::size_of::<u8>().try_into().unwrap(),
+    ) });
+
+    let traffic_class: u32 = 0;
+
+    assert_eq!(0, unsafe { libc::setsockopt(
+        socket,
+        libc::IPPROTO_IP,
+        libc::IP_TOS,
+        &traffic_class as *const u32 as *const libc::c_void,
+        std::mem::size_of::<i32>().try_into().unwrap(),
+    ) });
+
+    let message = request.to_vec();
+
+    let sockaddr_inx = SockaddrInx::from_ip_addr(*host);
+
+    assert_ne!(-1, unsafe { libc::sendto(
+        socket,
+        message.as_ptr() as *const libc::c_void,
+        message.len(),
+        0,
+        sockaddr_inx.sockaddr_ptr(),
+        sockaddr_inx.socklen(),
+    ) });
 }
