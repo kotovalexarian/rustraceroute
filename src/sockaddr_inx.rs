@@ -106,6 +106,10 @@ impl SockaddrInx {
 mod tests {
     use super::*;
 
+    const IPV4_BIG_ENDIAN: u32 = 16_777_343;
+    const IPV6_BIG_ENDIAN: [u8; 16] =
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
+
     const IPV4_ADDR: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 1);
     const IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
 
@@ -133,7 +137,7 @@ mod tests {
                 assert_eq!(sockaddr_in.sin_family,
                            libc::AF_INET as libc::sa_family_t);
                 assert_eq!(sockaddr_in.sin_port, 0);
-                assert_eq!(sockaddr_in.sin_addr.s_addr, 16_777_343);
+                assert_eq!(sockaddr_in.sin_addr.s_addr, IPV4_BIG_ENDIAN);
                 assert_eq!(sockaddr_in.sin_zero, [0; 8]);
             },
         }
@@ -159,7 +163,7 @@ mod tests {
         let sockaddr_inx = SockaddrInx::V4(libc::sockaddr_in {
             sin_family: libc::AF_INET as libc::sa_family_t,
             sin_port: 0,
-            sin_addr: libc::in_addr { s_addr: 16_777_343 },
+            sin_addr: libc::in_addr { s_addr: IPV4_BIG_ENDIAN },
             sin_zero: [0; 8],
         });
 
@@ -175,9 +179,7 @@ mod tests {
             sin6_family: libc::AF_INET6 as libc::sa_family_t,
             sin6_port: 0,
             sin6_flowinfo: 0,
-            sin6_addr: libc::in6_addr {
-                s6_addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-            },
+            sin6_addr: libc::in6_addr { s6_addr: IPV6_BIG_ENDIAN },
             sin6_scope_id: 0,
         });
 
