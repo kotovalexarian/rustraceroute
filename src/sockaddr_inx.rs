@@ -1,4 +1,4 @@
-use std::{convert::TryInto, fmt, net::{IpAddr, Ipv4Addr}};
+use std::{convert::TryInto, fmt, net::{IpAddr, Ipv4Addr, Ipv6Addr}};
 
 #[derive(Clone, Copy)]
 pub enum SockaddrInx {
@@ -46,7 +46,13 @@ impl SockaddrInx {
                     sin_zero: [0; 8],
                 })
             }
-            IpAddr::V6(_) => unimplemented!(),
+            IpAddr::V6(ipv6_addr) => Self::V6(libc::sockaddr_in6 {
+                sin6_family: libc::AF_INET6 as libc::sa_family_t,
+                sin6_port: 0,
+                sin6_flowinfo: 0,
+                sin6_addr: libc::in6_addr { s6_addr: ipv6_addr.octets() },
+                sin6_scope_id: 0,
+            })
         }
     }
 
@@ -83,12 +89,12 @@ impl SockaddrInx {
 mod tests {
     use super::*;
 
-    #[test]
-    fn from_ip_addr() {
-        let sockaddr_inx =
-            SockaddrInx::from_ip_addr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+    const IPV4_ADDR: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 1);
+    const IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
 
-        match sockaddr_inx {
+    #[test]
+    fn from_ipv4_addr() {
+        match SockaddrInx::from_ip_addr(IpAddr::V4(IPV4_ADDR)) {
             SockaddrInx::V6(_) => panic!(),
             SockaddrInx::V4(sockaddr_in) => {
                 assert_eq!(sockaddr_in.sin_family,
@@ -96,6 +102,21 @@ mod tests {
                 assert_eq!(sockaddr_in.sin_port, 0);
                 assert_eq!(sockaddr_in.sin_addr.s_addr, 16_777_343);
                 assert_eq!(sockaddr_in.sin_zero, [0; 8]);
+            },
+        }
+    }
+
+    #[test]
+    fn from_ipv6_addr() {
+        match SockaddrInx::from_ip_addr(IpAddr::V6(IPV6_ADDR)) {
+            SockaddrInx::V4(_) => panic!(),
+            SockaddrInx::V6(sockaddr_in6) => {
+                assert_eq!(sockaddr_in6.sin6_family,
+                           libc::AF_INET6 as libc::sa_family_t);
+                assert_eq!(sockaddr_in6.sin6_port, 0);
+                assert_eq!(sockaddr_in6.sin6_flowinfo, 0);
+                assert_eq!(sockaddr_in6.sin6_addr.s6_addr, IPV6_ADDR.octets());
+                assert_eq!(sockaddr_in6.sin6_scope_id, 0);
             },
         }
     }
