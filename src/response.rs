@@ -11,7 +11,7 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn parse(body: &[u8], source: &SockaddrInx) -> Option<Self> {
+    pub fn parse(source: &SockaddrInx, body: &[u8]) -> Option<Self> {
         if body.len() < 2 * (20 /* IP header */ + 8 /* ICMP header */) {
             return None
         }
@@ -48,22 +48,22 @@ mod tests {
 
     #[test]
     fn parse_empty() {
-        assert!(Response::parse(&[], &source()).is_none());
+        assert!(Response::parse(&source(), &[]).is_none());
     }
 
     #[test]
     fn parse_some() {
-        assert!(Response::parse(&BODY[0..22], &source()).is_none());
+        assert!(Response::parse(&source(), &BODY[0..22]).is_none());
     }
 
     #[test]
     fn parse_almost_enough() {
-        assert!(Response::parse(&BODY[0..55], &source()).is_none());
+        assert!(Response::parse(&source(), &BODY[0..55]).is_none());
     }
 
     #[test]
     fn parse() {
-        let response = Response::parse(&BODY, &source()).unwrap();
+        let response = Response::parse(&source(), &BODY).unwrap();
 
         assert_eq!(response.type_,    123);
         assert_eq!(response.code,     231);

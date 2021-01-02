@@ -110,9 +110,9 @@ fn main() {
                     match &response_sockaddr_inx {
                         None => None,
                         Some(response_sockaddr_inx) => Response::parse(
+                            &response_sockaddr_inx,
                             &response_body_data
                                 [0..(response_body_size as usize)],
-                            &response_sockaddr_inx,
                         ),
                     }
                 };
