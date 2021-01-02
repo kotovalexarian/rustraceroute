@@ -118,7 +118,7 @@ fn main() {
                 };
 
                 if let Some(tmp_response) = tmp_response {
-                    if tmp_response.matches_request(&request) {
+                    if tmp_response.does_match_request(&request) {
                         response = Some(tmp_response);
                         break
                     }

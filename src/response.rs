@@ -25,7 +25,7 @@ impl Response {
         })
     }
 
-    pub fn matches_request(&self, request: &Request) -> bool {
+    pub fn does_match_request(&self, request: &Request) -> bool {
         self.ident == request.ident && self.sequence == request.sequence
     }
 }
@@ -97,17 +97,17 @@ mod tests {
     }
 
     #[test]
-    fn matches_request() {
-        assert!(response().matches_request(&Request::new(IDENT, SEQUENCE)));
+    fn does_match_request() {
+        assert!(response().does_match_request(&Request::new(IDENT, SEQUENCE)));
     }
 
     #[test]
     fn does_not_match_request_ident() {
-        assert!(!response().matches_request(&Request::new(IDENT + 1, SEQUENCE)));
+        assert!(!response().does_match_request(&Request::new(IDENT + 1, SEQUENCE)));
     }
 
     #[test]
     fn does_not_match_request_sequence() {
-        assert!(!response().matches_request(&Request::new(IDENT, SEQUENCE + 1)));
+        assert!(!response().does_match_request(&Request::new(IDENT, SEQUENCE + 1)));
     }
 }
