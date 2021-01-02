@@ -64,7 +64,24 @@ impl SockaddrInx {
                 (sockaddr_in.sin_addr.s_addr >> 16) as u8,
                 (sockaddr_in.sin_addr.s_addr >> 24) as u8,
             )),
-            Self::V6(_sockaddr_in6) => unimplemented!(),
+            Self::V6(sockaddr_in6) => IpAddr::V6(Ipv6Addr::new(
+                ((sockaddr_in6.sin6_addr.s6_addr[0] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[1] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[2] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[3] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[4] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[5] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[6] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[7] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[8] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[9] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[10] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[11] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[12] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[13] as u16)),
+                ((sockaddr_in6.sin6_addr.s6_addr[14] as u16) << 8) +
+                ((sockaddr_in6.sin6_addr.s6_addr[15] as u16)),
+            )),
         }
     }
 
@@ -122,7 +139,7 @@ mod tests {
     }
 
     #[test]
-    fn to_ip_addr() {
+    fn to_ipv4_addr() {
         let sockaddr_inx = SockaddrInx::V4(libc::sockaddr_in {
             sin_family: libc::AF_INET as libc::sa_family_t,
             sin_port: 0,
@@ -132,8 +149,25 @@ mod tests {
 
         match sockaddr_inx.to_ip_addr() {
             IpAddr::V6(_) => panic!(),
-            IpAddr::V4(ipv4_addr) =>
-                assert_eq!(ipv4_addr, Ipv4Addr::new(127, 0, 0, 1)),
+            IpAddr::V4(ipv4_addr) => assert_eq!(ipv4_addr, IPV4_ADDR),
+        }
+    }
+
+    #[test]
+    fn to_ipv6_addr() {
+        let sockaddr_inx = SockaddrInx::V6(libc::sockaddr_in6 {
+            sin6_family: libc::AF_INET6 as libc::sa_family_t,
+            sin6_port: 0,
+            sin6_flowinfo: 0,
+            sin6_addr: libc::in6_addr {
+                s6_addr: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+            },
+            sin6_scope_id: 0,
+        });
+
+        match sockaddr_inx.to_ip_addr() {
+            IpAddr::V4(_) => panic!(),
+            IpAddr::V6(ipv6_addr) => assert_eq!(ipv6_addr, IPV6_ADDR),
         }
     }
 }
