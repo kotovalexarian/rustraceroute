@@ -1,14 +1,14 @@
 mod checksum;
 mod options;
-mod packet;
 mod reply;
+mod request;
 mod sockaddr_inx;
 
 use clap::Clap;
 use libc;
 use options::Options;
-use packet::Packet;
 use reply::{Reply};
+use request::Request;
 use sockaddr_inx::SockaddrInx;
 use std::{convert::TryInto, net::IpAddr, time::{Duration, SystemTime}};
 
@@ -35,7 +35,7 @@ fn main() {
         let mut current_address: Option<IpAddr> = None;
 
         for sequence in 0..options.nqueries {
-            let packet = Packet::new(0, sequence);
+            let request = Request::new(0, sequence);
 
             assert_eq!(0, unsafe { libc::setsockopt(
                 socket,
@@ -55,7 +55,7 @@ fn main() {
                 std::mem::size_of::<i32>().try_into().unwrap(),
             ) });
 
-            let message = packet.to_vec();
+            let message = request.to_vec();
 
             let sockaddr_inx = SockaddrInx::from_ip_addr(host);
 
@@ -118,8 +118,8 @@ fn main() {
                 };
 
                 if let Some(tmp_reply) = tmp_reply {
-                    if tmp_reply.ident == packet.ident &&
-                        tmp_reply.sequence == packet.sequence
+                    if tmp_reply.ident == request.ident &&
+                        tmp_reply.sequence == request.sequence
                     {
                         reply = Some(tmp_reply);
                         break
