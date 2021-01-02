@@ -29,4 +29,12 @@ pub struct Options {
         about = "The number of probe packets per hop",
     )]
     pub nqueries: u16,
+
+    #[clap(
+        short = 'w',
+        long = "wait",
+        default_value = "5",
+        about = "The time (in seconds) to wait for a response to a probe",
+    )]
+    pub waittime: u8,
 }
