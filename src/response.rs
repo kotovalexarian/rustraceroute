@@ -30,12 +30,27 @@ mod tests {
     use std::net::{IpAddr, Ipv4Addr};
     use super::*;
 
+    const IPV4_ADDR: Ipv4Addr = Ipv4Addr::new(127, 0, 0, 1);
+    const IP_ADDR: IpAddr = IpAddr::V4(IPV4_ADDR);
+
+    fn source() -> SockaddrInx { SockaddrInx::from_ip_addr(IP_ADDR) }
+
+    #[test]
+    fn parse_empty() {
+        let body: [u8; 0] = [];
+
+        assert!(Response::parse(&body, &source()).is_none());
+    }
+
+    #[test]
+    fn parse_almost_enough() {
+        let body: [u8; 55] = [0; 55];
+
+        assert!(Response::parse(&body, &source()).is_none());
+    }
+
     #[test]
     fn parse() {
-        let ipv4_addr = Ipv4Addr::new(127, 0, 0, 1);
-        let ip_addr = IpAddr::V4(ipv4_addr);
-        let source = SockaddrInx::from_ip_addr(ip_addr);
-
         let body: [u8; 56] = [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             123,
@@ -46,7 +61,7 @@ mod tests {
             231, 123, // 59_259
         ];
 
-        let response = Response::parse(&body, &source).unwrap();
+        let response = Response::parse(&body, &source()).unwrap();
 
         assert_eq!(response.type_,    123);
         assert_eq!(response.code,     231);
