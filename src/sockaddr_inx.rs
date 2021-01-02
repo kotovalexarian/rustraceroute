@@ -34,10 +34,10 @@ impl SockaddrInx {
                 let octets = ipv4_addr.octets();
 
                 let s_addr =
-                    ((octets[0] as u32) << 24) +
-                    ((octets[1] as u32) << 16) +
-                    ((octets[2] as u32) << 8)  +
-                    ((octets[3] as u32));
+                    ((octets[3] as u32) << 24) +
+                    ((octets[2] as u32) << 16) +
+                    ((octets[1] as u32) << 8)  +
+                    ((octets[0] as u32));
 
                 Self::V4(libc::sockaddr_in {
                     sin_family: libc::AF_INET as libc::sa_family_t,
@@ -53,10 +53,10 @@ impl SockaddrInx {
     pub fn to_ip_addr(&self) -> IpAddr {
         match self {
             Self::V4(sockaddr_in) => IpAddr::V4(Ipv4Addr::new(
-                (sockaddr_in.sin_addr.s_addr >> 24) as u8,
-                (sockaddr_in.sin_addr.s_addr >> 16) as u8,
-                (sockaddr_in.sin_addr.s_addr >> 8)  as u8,
                 (sockaddr_in.sin_addr.s_addr)       as u8,
+                (sockaddr_in.sin_addr.s_addr >> 8)  as u8,
+                (sockaddr_in.sin_addr.s_addr >> 16) as u8,
+                (sockaddr_in.sin_addr.s_addr >> 24) as u8,
             )),
             Self::V6(_sockaddr_in6) => unimplemented!(),
         }
@@ -76,5 +76,43 @@ impl SockaddrInx {
             Self::V4(_) => std::mem::size_of::<libc::sockaddr_in>(),
             Self::V6(_) => std::mem::size_of::<libc::sockaddr_in6>(),
         }).try_into().unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn from_ip_addr() {
+        let sockaddr_inx =
+            SockaddrInx::from_ip_addr(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)));
+
+        match sockaddr_inx {
+            SockaddrInx::V6(_) => panic!(),
+            SockaddrInx::V4(sockaddr_in) => {
+                assert_eq!(sockaddr_in.sin_family,
+                           libc::AF_INET as libc::sa_family_t);
+                assert_eq!(sockaddr_in.sin_port, 0);
+                assert_eq!(sockaddr_in.sin_addr.s_addr, 16_777_343);
+                assert_eq!(sockaddr_in.sin_zero, [0; 8]);
+            },
+        }
+    }
+
+    #[test]
+    fn to_ip_addr() {
+        let sockaddr_inx = SockaddrInx::V4(libc::sockaddr_in {
+            sin_family: libc::AF_INET as libc::sa_family_t,
+            sin_port: 0,
+            sin_addr: libc::in_addr { s_addr: 16_777_343 },
+            sin_zero: [0; 8],
+        });
+
+        match sockaddr_inx.to_ip_addr() {
+            IpAddr::V6(_) => panic!(),
+            IpAddr::V4(ipv4_addr) =>
+                assert_eq!(ipv4_addr, Ipv4Addr::new(127, 0, 0, 1)),
+        }
     }
 }
