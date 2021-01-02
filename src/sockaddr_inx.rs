@@ -110,6 +110,22 @@ mod tests {
     const IPV6_ADDR: Ipv6Addr = Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1);
 
     #[test]
+    fn from_to_ipv4_addr() {
+        assert_eq!(
+            SockaddrInx::from_ip_addr(IpAddr::V4(IPV4_ADDR)).to_ip_addr(),
+            IPV4_ADDR,
+        );
+    }
+
+    #[test]
+    fn from_to_ipv6_addr() {
+        assert_eq!(
+            SockaddrInx::from_ip_addr(IpAddr::V6(IPV6_ADDR)).to_ip_addr(),
+            IPV6_ADDR,
+        );
+    }
+
+    #[test]
     fn from_ipv4_addr() {
         match SockaddrInx::from_ip_addr(IpAddr::V4(IPV4_ADDR)) {
             SockaddrInx::V6(_) => panic!(),
