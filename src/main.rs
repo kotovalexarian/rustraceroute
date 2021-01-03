@@ -39,15 +39,7 @@ fn main() {
 
             send_request(socket, current_ttl, &host, &request);
 
-            let timeval = libc::timeval { tv_sec: 2, tv_usec: 0 };
-
-            assert_eq!(0, unsafe { libc::setsockopt(
-                socket,
-                libc::SOL_SOCKET,
-                libc::SO_RCVTIMEO,
-                &timeval as *const libc::timeval as *const libc::c_void,
-                std::mem::size_of::<libc::timeval>().try_into().unwrap(),
-            ) });
+            set_timeout(socket, 2, 0);
 
             let mut response: Option<Response> = None;
 
@@ -117,6 +109,18 @@ fn send_request(
         0,
         sockaddr_inx.sockaddr_ptr(),
         sockaddr_inx.socklen(),
+    ) });
+}
+
+fn set_timeout(socket: libc::c_int, sec: i64, usec: i64) {
+    let timeval = libc::timeval { tv_sec: sec, tv_usec: usec };
+
+    assert_eq!(0, unsafe { libc::setsockopt(
+        socket,
+        libc::SOL_SOCKET,
+        libc::SO_RCVTIMEO,
+        &timeval as *const libc::timeval as *const libc::c_void,
+        std::mem::size_of::<libc::timeval>().try_into().unwrap(),
     ) });
 }
 
