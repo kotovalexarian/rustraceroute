@@ -32,36 +32,12 @@ fn main() {
     let mut current_ttl = options.first_ttl;
 
     while !reached_host && current_ttl <= options.max_ttl {
-        let mut current_address: Option<IpAddr> = None;
-
-        for sequence in 0..options.nqueries {
-            let request = Request::new(0, sequence);
-
-            send_request(socket, current_ttl, &host, &request);
-
-            set_timeout(socket, 2, 0);
-
-            let mut response: Option<Response> = None;
-
-            let time_limit = SystemTime::now() + Duration::new(2, 0);
-
-            while SystemTime::now() < time_limit {
-                if let Some(tmp_response) = recv_response(socket) {
-                    if tmp_response.does_match_request(&request) {
-                        response = Some(tmp_response);
-                        break
-                    }
-                }
-            }
-
-            if let Some(response) = response {
-                if response.type_ != 11 || response.code != 0 {
-                    continue
-                }
-
-                current_address = Some(response.source);
-            }
-        }
+        let current_address = iterate_ttl(
+            &options,
+            &host,
+            socket,
+            current_ttl,
+        );
 
         if let Some(ip_addr) = current_address {
             println!("{} {}", current_ttl, ip_addr);
@@ -72,6 +48,44 @@ fn main() {
 
         current_ttl += 1;
     }
+}
+
+fn iterate_ttl(
+    options: &Options,
+    host: &IpAddr,
+    socket: libc::c_int,
+    current_ttl: u8,
+) -> Option<IpAddr> {
+    for sequence in 0..options.nqueries {
+        let request = Request::new(0, sequence);
+
+        send_request(socket, current_ttl, &host, &request);
+
+        set_timeout(socket, 2, 0);
+
+        let mut response: Option<Response> = None;
+
+        let time_limit = SystemTime::now() + Duration::new(2, 0);
+
+        while SystemTime::now() < time_limit {
+            if let Some(tmp_response) = recv_response(socket) {
+                if tmp_response.does_match_request(&request) {
+                    response = Some(tmp_response);
+                    break
+                }
+            }
+        }
+
+        if let Some(response) = response {
+            if response.type_ != 11 || response.code != 0 {
+                continue
+            }
+
+            return Some(response.source)
+        }
+    }
+
+    return None
 }
 
 fn send_request(
