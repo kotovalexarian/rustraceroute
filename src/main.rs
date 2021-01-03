@@ -54,41 +54,7 @@ fn main() {
             let time_limit = SystemTime::now() + Duration::new(2, 0);
 
             while SystemTime::now() < time_limit {
-                let response_body_data: [u8; 1024] = [0; 1024];
-
-                let mut response_sockaddr_data = libc::sockaddr {
-                    sa_family: 0,
-                    sa_data: [0i8; 14],
-                };
-
-                let mut response_sockaddr_size: u32 =
-                    std::mem::size_of::<libc::sockaddr>().try_into().unwrap();
-
-                let response_body_size: isize = unsafe { libc::recvfrom(
-                    socket,
-                    response_body_data.as_ptr() as *mut libc::c_void,
-                    std::mem::size_of::<[u8; 1024]>(),
-                    0,
-                    &mut response_sockaddr_data,
-                    &mut response_sockaddr_size,
-                ) };
-
-                let response_sockaddr_inx = SockaddrInx::from_sockaddr(
-                    response_sockaddr_data,
-                );
-
-                let tmp_response = if response_body_size < 0 { None } else {
-                    match &response_sockaddr_inx {
-                        None => None,
-                        Some(response_sockaddr_inx) => Response::parse(
-                            &response_sockaddr_inx,
-                            &response_body_data
-                                [0..(response_body_size as usize)],
-                        ),
-                    }
-                };
-
-                if let Some(tmp_response) = tmp_response {
+                if let Some(tmp_response) = recv_response(socket) {
                     if tmp_response.does_match_request(&request) {
                         response = Some(tmp_response);
                         break
@@ -152,4 +118,40 @@ fn send_request(
         sockaddr_inx.sockaddr_ptr(),
         sockaddr_inx.socklen(),
     ) });
+}
+
+fn recv_response(socket: libc::c_int) -> Option<Response> {
+    let response_body_data: [u8; 1024] = [0; 1024];
+
+    let mut response_sockaddr_data = libc::sockaddr {
+        sa_family: 0,
+        sa_data: [0i8; 14],
+    };
+
+    let mut response_sockaddr_size: u32 =
+        std::mem::size_of::<libc::sockaddr>().try_into().unwrap();
+
+    let response_body_size: isize = unsafe { libc::recvfrom(
+        socket,
+        response_body_data.as_ptr() as *mut libc::c_void,
+        std::mem::size_of::<[u8; 1024]>(),
+        0,
+        &mut response_sockaddr_data,
+        &mut response_sockaddr_size,
+    ) };
+
+    let response_sockaddr_inx = SockaddrInx::from_sockaddr(
+        response_sockaddr_data,
+    );
+
+    if response_body_size < 0 { None } else {
+        match &response_sockaddr_inx {
+            None => None,
+            Some(response_sockaddr_inx) => Response::parse(
+                &response_sockaddr_inx,
+                &response_body_data
+                    [0..(response_body_size as usize)],
+            ),
+        }
+    }
 }
