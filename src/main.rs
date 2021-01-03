@@ -63,20 +63,7 @@ fn iterate_ttl(
 
         set_timeout(socket, 2, 0);
 
-        let mut response: Option<Response> = None;
-
-        let time_limit = SystemTime::now() + Duration::new(2, 0);
-
-        while SystemTime::now() < time_limit {
-            if let Some(tmp_response) = recv_response(socket) {
-                if tmp_response.does_match_request(&request) {
-                    response = Some(tmp_response);
-                    break
-                }
-            }
-        }
-
-        if let Some(response) = response {
+        if let Some(response) = recv_response1(socket, &request) {
             if response.type_ != 11 || response.code != 0 {
                 continue
             }
@@ -138,7 +125,21 @@ fn set_timeout(socket: libc::c_int, sec: i64, usec: i64) {
     ) });
 }
 
-fn recv_response(socket: libc::c_int) -> Option<Response> {
+fn recv_response1(socket: libc::c_int, request: &Request) -> Option<Response> {
+    let time_limit = SystemTime::now() + Duration::new(2, 0);
+
+    while SystemTime::now() < time_limit {
+        if let Some(tmp_response) = recv_response2(socket) {
+            if tmp_response.does_match_request(request) {
+                return Some(tmp_response)
+            }
+        }
+    }
+
+    return None
+}
+
+fn recv_response2(socket: libc::c_int) -> Option<Response> {
     let response_body_data: [u8; 1024] = [0; 1024];
 
     let mut response_sockaddr_data = libc::sockaddr {
